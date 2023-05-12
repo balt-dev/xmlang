@@ -1,0 +1,7 @@
+<program>
+    <import id="!std" />
+    <import id="lib.xml" />
+    <call id="println">
+        <access id="x" />
+    </call>
+</program>

@@ -1,0 +1,15 @@
+[package]
+name = "xmlang"
+version = "0.9.0"
+authors = ["balt"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+xmltree = "0.10.3"
+thiserror = "1.0.40"
+substring = "1.4.5" # UTF-8 is hard
+rand = "0.8.5"
+radix_fmt = "1.0.0"
