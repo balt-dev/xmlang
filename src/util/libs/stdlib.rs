@@ -108,7 +108,6 @@ pub fn get(state: &mut Interpreter) {
         };
         (1) "ord" => |args| {
             if let Value::String(s) = &args[0] {
-                dbg!(&s);
                 if s.chars().count() == 1 {
                     let c = s.chars().nth(0).unwrap() as i64;
                     return Ok(Some(Value::Integer(Wrapping(c))));

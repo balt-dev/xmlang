@@ -604,9 +604,7 @@ pub fn run(tree: &NodeArena, state: &mut Interpreter) -> Result<Option<Value>, L
                 libs::import(&name[1..], state)?;
             } else {
                 let mut imp_intr = state.clone();
-                dbg!(&name);
                 let p = state.program_path.parent().expect("Program has no parent????").join(name);
-                dbg!(&p);
                 let raw_program = match std::fs::read_to_string(p) {
                     Ok(s) => s,
                     Err(e) => {

@@ -1,7 +1,8 @@
 <program>
-    <import id="!std" />
-    <import id="lib.xml" />
-    <call id="println">
-        <access id="x" />
-    </call>
+	<!-- TODO: make a better example -->
+	<import id="!std" />
+	<import id="lib.xml" />
+	<call id="println">
+		<access id="x" />
+    	</call>
 </program>
