@@ -1,14 +1,12 @@
-use crate::util::Interpreter;
-use crate::util::FunctionBody;
 use crate::util::structures::*;
+use crate::util::FunctionBody;
+use crate::util::Interpreter;
 
-use std::num::Wrapping;
 use std::io;
+use std::io::Write;
+use std::num::Wrapping;
 use std::thread;
-use std::time::{
-    Duration,
-    SystemTime
-};
+use std::time::{Duration, SystemTime};
 
 use radix_fmt::radix;
 
@@ -16,13 +14,21 @@ use super::make_func;
 
 pub fn get(state: &mut Interpreter) {
     make_func!(
-        state; 
+        state;
         (1) "print" => |values| {
             print!("{}", values[0]);
             Ok(None)
         };
         (1) "println" => |values| {
             println!("{}", values[0]);
+            Ok(None)
+        };
+        (0) "flush" => |_| {
+            if let Err(_) = io::stdout().flush() {
+                return Err(LangError::RuntimeError(
+                    "Failed to flush stdout".into()
+                ));
+            }
             Ok(None)
         };
         (3) "range" => |values| {
@@ -152,7 +158,7 @@ pub fn get(state: &mut Interpreter) {
             if let Value::Integer(i) = args[0] {
                 let i = if i.0 < 0 {0u64} else {i.0 as u64};
                 t = Duration::from_secs(i);
-            } else if let Value::Float(f) = args[1] {
+            } else if let Value::Float(f) = args[0] {
                 let f = if *f < 0.0 {0.0} else {*f};
                 if !f.is_finite() {
                     return Err(LangError::RuntimeError("Non-finite value given for sleep duration".into()));
@@ -169,6 +175,21 @@ pub fn get(state: &mut Interpreter) {
                 |_| LangError::RuntimeError("Current system time is before unix epoch (???)".into())
             )?;
             Ok(Some(Value::Float(HashableFloat(t.as_secs_f64()))))
+        };
+        (1) "type" => |args| {
+            Ok(Some(Value::String(match &args[0] {
+                Value::Integer(_) => "int",
+                Value::Float(_) => "float",
+                Value::Boolean(_) => "bool",
+                Value::String(_) => "str",
+                Value::Array(_) => "arr",
+                Value::Dictionary(_) => "dict",
+                Value::Set(_) => "set",
+                Value::Function(_, __) => "func",
+                Value::Null => "null",
+                Value::Break => "break",
+                Value::Continue => "continue"
+            }.into())))
         };
     );
 }

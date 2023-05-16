@@ -6,7 +6,6 @@ use std::{
     collections::{HashMap, HashSet}, 
     iter,
     num::Wrapping,
-    path::Path
 };
 
 use substring::Substring;
@@ -387,12 +386,12 @@ pub fn run(tree: &NodeArena, state: &mut Interpreter) -> Result<Option<Value>, L
                 ("bool", Value::Boolean(_)) => Ok(Some(a)),
                 ("bool", Value::String(x)) => Ok(Some(Value::Boolean(!x.is_empty()))),
                 ("bool", Value::Null) => Ok(Some(Value::Boolean(false))),
-                ("string", _) => Ok(Some(Value::String(a.to_string()))),
-                ("array", Value::Array(_)) => Ok(Some(a)),
-                ("array", Value::Set(x)) => Ok(Some(Value::Array(x.iter().cloned().collect()))),
-                ("array", Value::Dictionary(x)) => Ok(Some(Value::Array(x.keys().cloned().collect()))),
-                ("array", Value::String(string)) => Ok(Some(Value::Array(string.chars().map(|chr| Value::String(chr.to_string())).collect()))),
-                ("array", Value::Null) => Ok(Some(Value::Array(Vec::new()))),
+                ("str", _) => Ok(Some(Value::String(a.to_string()))),
+                ("arr", Value::Array(_)) => Ok(Some(a)),
+                ("arr", Value::Set(x)) => Ok(Some(Value::Array(x.iter().cloned().collect()))),
+                ("arr", Value::Dictionary(x)) => Ok(Some(Value::Array(x.keys().cloned().collect()))),
+                ("arr", Value::String(string)) => Ok(Some(Value::Array(string.chars().map(|chr| Value::String(chr.to_string())).collect()))),
+                ("arr", Value::Null) => Ok(Some(Value::Array(Vec::new()))),
                 ("set", Value::Array(x)) => Ok(Some(Value::Set(HashableSet(HashSet::from_iter(x.iter().cloned()))))),
                 ("set", Value::Set(_)) => Ok(Some(a)),
                 ("set", Value::Dictionary(x)) => Ok(Some(Value::Set(HashableSet(x.keys().cloned().collect())))),
@@ -411,16 +410,26 @@ pub fn run(tree: &NodeArena, state: &mut Interpreter) -> Result<Option<Value>, L
             for i in 0..root.children.len() {
                 args.push(run(&tree.subtree(root.children[i]), state)?.unwrap_or(Value::Null));
             }
-            let func = state.variables.get(fnc).cloned().ok_or(
-                LangError::RuntimeError(
-                    format!("Tried to call non-existent function {fnc}")
-                )
-            )?;
+            let func;
+            if let Some(f) = fnc {
+                func = state.variables.get(f).cloned().ok_or(
+                    LangError::RuntimeError(
+                        format!("Tried to call non-existent function {f}")
+                    )
+                )?;
+            } else {
+                if root.children.len() < 1 {
+                    return Err(LangError::RuntimeError(
+                        "Tried to call with no function specified".into()
+                    ))
+                }
+                func = args.remove(0);
+            }
             if let Value::Function(arg_names, body) = func {
                 let mut state = state.clone();
                 if args.len() != arg_names.len() {
                     return Err(LangError::RuntimeError(
-                        format!("Wrong number of arguments for call to {}", fnc)
+                        "Wrong number of arguments for call".into()
                     ))
                 }
                 for (arg, name) in args.iter().zip(arg_names.iter()) {
@@ -502,7 +511,7 @@ pub fn run(tree: &NodeArena, state: &mut Interpreter) -> Result<Option<Value>, L
                     }
                     // pairing of condition and body, with an optional lone body at the end being the else
                     let mut pairs = Vec::new();
-                    for i in (0..root.children.len()).step_by(2) {
+                    for i in (0..root.children.len()-2).step_by(2) {
                         pairs.push((root.children[i], root.children[i + 1]));
                     }
                     for (cond, body) in pairs {
@@ -592,7 +601,44 @@ pub fn run(tree: &NodeArena, state: &mut Interpreter) -> Result<Option<Value>, L
         },
         NodeKind::Access(name) => {
             if let Some(value) = state.variables.get(name) {
-                return Ok(Some(value.clone()))
+                let value = value.clone();
+                if root.children.len() == 0 {
+                    return Ok(Some(value));
+                } else if root.children.len() == 1 {
+                    // Get nth element of array/string
+                    let index = run(&tree.subtree(root.children[0]), state)?.unwrap_or(Value::Null);
+                    if let Value::Integer(i) = index {
+                        match value {
+                            Value::Array(arr) => {
+                                if i.0 < 0 || i.0 >= arr.len() as i64 {
+                                    return Err(LangError::RuntimeError(
+                                        format!("Index {i} out of bounds for array of length {}", arr.len())
+                                    ))
+                                }
+                                return Ok(Some(arr[i.0 as usize].clone()));
+                            },
+                            Value::String(s) => {
+                                if i.0 < 0 || i.0 >= s.len() as i64 {
+                                    return Err(LangError::RuntimeError(
+                                        format!("Index {i} out of bounds for string of length {}", s.len())
+                                    ))
+                                }
+                                return Ok(Some(Value::String(s.chars().nth(i.0 as usize).unwrap().to_string())));
+                            },
+                            v => return Err(LangError::RuntimeError(
+                                format!("Can't index into {v}")
+                            ))
+                        }
+                    } else {
+                        return Err(LangError::RuntimeError(
+                            "Non-integer index for access node".into()
+                        ))
+                    }
+                } else {
+                    return Err(LangError::RuntimeError(
+                        "Too many children for access node".into()
+                    ))
+                }
             } else {
                 return Err(LangError::RuntimeError(
                     format!("Tried to access non-existent variable {name}")

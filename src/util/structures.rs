@@ -182,7 +182,7 @@ pub enum NodeKind {
     Try,
     Function(Option<String>),
     Arguments,
-    Call(String),
+    Call(Option<String>),
     Pair,
     Access(String),
     Import(String)
@@ -346,8 +346,9 @@ impl fmt::Debug for Value {
             Value::Dictionary(d) => write!(f, "{:?}", d),
             Value::Set(s) => write!(f, "{:?}", s),
             Value::Function(args, _) => write!(f, "<func: {}>", args.join(", ")),
-            Value::Null => write!(f, "null"),
-            _ => unimplemented!()
+            Value::Null => write!(f, "<null>"),
+            Value::Break => write!(f, "<break>"),
+            Value::Continue => write!(f, "<continue>")
         }
     }
 }

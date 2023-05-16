@@ -1,6 +1,0 @@
-<program>
-    <assign id="x">
-        <int>5</int>
-    </assign>
-    <public id="x" />
-</program>

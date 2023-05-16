@@ -71,7 +71,7 @@ pub fn parse_element(
 ) -> Result<NodeArena, LangError> {
     let name = el.name.as_str();
     let text: String = match el.get_text() {
-        Some(cow) => cow.trim().to_string(),
+        Some(cow) => cow.to_string(),
         None => String::new(),
     };
     let id = el
@@ -128,7 +128,7 @@ pub fn parse_element(
             "shr" => BinOp::Shr,
             "mod" => BinOp::Rem,
             "eq" => BinOp::Eq,
-            "neq" => BinOp::Ne,
+            "ne" => BinOp::Ne,
             "lt" => BinOp::Lt,
             "gt" => BinOp::Gt,
             "leq" => BinOp::Leq,
@@ -161,7 +161,7 @@ pub fn parse_element(
             _ => unreachable!(),
         }),
         "arg" => NodeKind::Argument(id?),
-        "call" => NodeKind::Call(id?),
+        "call" => NodeKind::Call(id.ok()),
         "block" => NodeKind::Block,
         "func" => NodeKind::Function(id.ok()),
         "pair" => NodeKind::Pair,

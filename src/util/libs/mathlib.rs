@@ -77,6 +77,14 @@ pub fn get(state: &mut Interpreter) {
         "e".into(), 
         Value::Float(HashableFloat(E))
     );
+    state.variables.insert(
+        "inf".into(), 
+        Value::Float(HashableFloat(f64::INFINITY))
+    );
+    state.variables.insert(
+        "nan".into(), 
+        Value::Float(HashableFloat(f64::NAN))
+    );
     wrap_unary!(
         state;
         "sin" => sin,

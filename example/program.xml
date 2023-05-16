@@ -1,8 +1,7 @@
 <program>
 	<!-- TODO: make a better example -->
 	<import id="!std" />
-	<import id="lib.xml" />
 	<call id="println">
-		<access id="x" />
+		<str>Hello, world!</str>	
     	</call>
 </program>

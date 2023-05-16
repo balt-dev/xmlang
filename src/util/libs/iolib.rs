@@ -1,5 +1,5 @@
-use crate::util::Interpreter;
 use crate::util::structures::*;
+use crate::util::Interpreter;
 
 use std::fs::*;
 
