@@ -35,10 +35,8 @@ pub fn get(state: &mut Interpreter) {
             Ok(None)
         };
         (3) "range" => |values| {
-            if let (Value::Integer(start), Value::Integer(stop), Value::Integer(step))
+            if let (Value::Integer(mut a), Value::Integer(mut b), Value::Integer(mut step))
                 = (&values[0], &values[1], &values[2]) {
-                let a = start.min(stop);
-                let b = start.max(stop);
                 if step.0 == 0 {
                     return Err(LangError::RuntimeError(
                         "Can't make a range with 0 step".into()
@@ -46,7 +44,7 @@ pub fn get(state: &mut Interpreter) {
                 }
                 Ok(Some(Value::Array(
                     if step.0 < 0 {
-                        (a.0+1 ..= b.0).rev().step_by(-step.0 as usize)
+                        (b.0+1 ..= a.0).rev().step_by(-step.0 as usize)
                         .map(|i| Value::Integer(Wrapping(i)))
                         .collect()
                     } else {

@@ -1,9 +1,10 @@
 <program>
     <import id="!std" />
     <call id="println">
-        <div>
-            <int>5</int>
-            <int>2</int>
-        </div>
+        <call id="range">
+            <int>10</int>
+            <int>0</int>
+            <int>1</int>
+        </call>
     </call>
 </program>

@@ -5,8 +5,7 @@ use crate::util::structures::*;
 use super::make_func;
     
 use std::f64::consts::*;
-use std::num::Wrapping;
-
+// 
 macro_rules! wrap_unary {
     ($state: ident; $name: expr => $func: ident , $($names: expr => $funcs: ident),+) => {
         wrap_unary!($state; $name => $func);
@@ -122,19 +121,41 @@ pub fn get(state: &mut Interpreter) {
     );
     make_func!(
         state;
-        (3) "lerp" => |values| {
+        (3) "lerp" => |mut values| {
+             if let Value::Integer(i) = values[0] {
+                 values[0] = Value::Float(HashableFloat(i.0 as f64));
+             }
+             if let Value::Integer(i) = values[1] {
+                 values[1] = Value::Float(HashableFloat(i.0 as f64));
+             }
+             if let Value::Integer(i) = values[2] {
+                 values[2] = Value::Float(HashableFloat(i.0 as f64));
+             }
             if let (Value::Float(a), Value::Float(b), Value::Float(t)) = (&values[0], &values[1], &values[2]) {
-                return Ok(Some(Value::Float(HashableFloat(
+                Ok(Some(Value::Float(HashableFloat(
                     a.0 + (b.0 - a.0) * t.0
-                ))));
-            } else if let (Value::Integer(a), Value::Integer(b), Value::Float(t)) = (&values[0], &values[1], &values[2]) {
-                return Ok(Some(Value::Integer(
-                    Wrapping(((a.0 as f64 + (b.0 as f64 - a.0 as f64)) * t.0) as i64)
-                )));
+                ))))
             } else {
-                return Err(LangError::RuntimeError(
-                    format!("Non-numbers specified for operation lerp")
-                ));
+                Err(LangError::RuntimeError(
+                    "Non-numbers specified for operation lerp".into()
+                ))
+            }
+        };
+        (2) "log" => |mut values| {
+      		if let Value::Integer(i) = values[0] {
+                values[0] = Value::Float(HashableFloat(i.0 as f64));
+            }
+            if let Value::Integer(i) = values[1] {
+                values[1] = Value::Float(HashableFloat(i.0 as f64));
+            }
+            if let (Value::Float(a), Value::Float(b)) = (&values[0], &values[1]) {
+                Ok(Some(Value::Float(HashableFloat(
+                    a.0.log(b.0)
+                ))))
+            } else {
+                Err(LangError::RuntimeError(
+                    "Non-numbers specified for operation log".into()
+                ))
             }
         };
     );
