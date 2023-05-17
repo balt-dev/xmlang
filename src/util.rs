@@ -6,6 +6,7 @@ use std::{
     collections::{HashMap, HashSet}, 
     iter,
     num::Wrapping,
+    path::Path
 };
 
 use substring::Substring;
@@ -17,7 +18,14 @@ macro_rules! numeric_map {
         match $token {
             $(
                 BinOp::$name => match ($a, $b) {
-                    (Value::Integer(x), Value::Integer(y)) => Value::Integer(x $op y),
+                    (Value::Integer(x), Value::Integer(y)) => {
+                        if (y.0 == 0) {
+                            return Err(LangError::RuntimeError(
+                                "Tried to divide by 0".into()
+                            ));
+                        } 
+                        Value::Integer(x $op y)
+                    },
                     (Value::Integer(x), Value::Float(y)) => Value::Float(HashableFloat(x.0 as f64 $op (*y))),
                     (Value::Float(x), Value::Integer(y)) => Value::Float(HashableFloat((*x) $op y.0 as f64)),
                     (Value::Float(x), Value::Float(y)) => Value::Float(HashableFloat((*x) $op (*y))),
@@ -26,7 +34,7 @@ macro_rules! numeric_map {
                             format!("Can't {} {} and {}", stringify!($name), x, y)
                         )) // Can't do this with these types
                     }
-                }
+                },
             )+
             _ => unreachable!()
         }
@@ -233,9 +241,19 @@ pub fn run(tree: &NodeArena, state: &mut Interpreter) -> Result<Option<Value>, L
                         }
                     }
                 },
-                token @ (BinOp::Mul | BinOp::Div | BinOp::Rem) => numeric_map! {
+               BinOp::Mul => match (a, b) {
+                    (Value::Integer(x), Value::Integer(y)) => Value::Integer(x * y),
+                    (Value::Integer(x), Value::Float(y)) => Value::Float(HashableFloat(x.0 as f64 * (*y))),
+                    (Value::Float(x), Value::Integer(y)) => Value::Float(HashableFloat((*x) * y.0 as f64)),
+                    (Value::Float(x), Value::Float(y)) => Value::Float(HashableFloat((*x) * (*y))),
+                    (x, y) => {
+                        return Err(LangError::RuntimeError(
+                            format!("Can't {} {} and {}", stringify!($name), x, y)
+                        )) // Can't do this with these types
+                    }
+                }
+                token @ (BinOp::Div | BinOp::Rem) => numeric_map! {
                     token, a, b |
-                    Mul => *,
                     Div => /,
                     Rem => %
                 },
@@ -289,7 +307,13 @@ pub fn run(tree: &NodeArena, state: &mut Interpreter) -> Result<Option<Value>, L
                 },
                 BinOp::Pow => {
                     match (a, b) {
-                        (Value::Integer(x), Value::Integer(y)) => Value::Integer(Wrapping(x.0.wrapping_pow(y.0 as u32))),
+                        (Value::Integer(x), Value::Integer(y)) => {
+                            if y.0 < 0 {
+                               Value::Float(HashableFloat((x.0 as f64).powi(y.0 as i32)))
+                            } else {
+                                Value::Integer(Wrapping(x.0.wrapping_pow(y.0 as u32)))
+                            }
+                        },
                         (Value::Integer(x), Value::Float(y)) => Value::Float(HashableFloat((x.0 as f64).powf(*y))),
                         (Value::Float(x), Value::Integer(y)) => Value::Float(HashableFloat((*x).powi(y.0 as i32))),
                         (Value::Float(x), Value::Float(y)) => Value::Float(HashableFloat((*x).powf(*y))),

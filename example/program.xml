@@ -1,7 +1,9 @@
 <program>
-	<!-- TODO: make a better example -->
-	<import id="!std" />
-	<call id="println">
-		<str>Hello, world!</str>	
-    	</call>
+    <import id="!std" />
+    <call id="println">
+        <div>
+            <int>5</int>
+            <int>2</int>
+        </div>
+    </call>
 </program>

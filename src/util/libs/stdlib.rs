@@ -7,10 +7,13 @@ use std::io::Write;
 use std::num::Wrapping;
 use std::thread;
 use std::time::{Duration, SystemTime};
+use std::hash::{Hash, Hasher};
+use std::collections::hash_map::DefaultHasher;
 
 use radix_fmt::radix;
 
 use super::make_func;
+
 
 pub fn get(state: &mut Interpreter) {
     make_func!(
@@ -190,6 +193,13 @@ pub fn get(state: &mut Interpreter) {
                 Value::Break => "break",
                 Value::Continue => "continue"
             }.into())))
+        };
+        (1) "hash" => |args| {
+            let mut hasher = DefaultHasher::new();
+            args[0].hash(&mut hasher);
+            Ok(Some(Value::Integer(
+                Wrapping(hasher.finish() as i64)
+            )))
         };
     );
 }
