@@ -1,5 +1,6 @@
  # xmlang
- XML programming language
+ XML programming language. See https://esolangs.org/wiki/XMLang.
+ 
+This code is likely terrible, as this is my first big project with Rust (the ones in the book didn't interest me)
 
- ## TODO
- - [ ] Write unit tests
+If anything panics at runtime or doesn't work as intended in any other way, please open an issue!
