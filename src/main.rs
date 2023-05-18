@@ -80,7 +80,8 @@ fn main() -> Result<(), ()> {
     if let Some(p) = cli_args.next() {
         program_path = PathBuf::from(p);
     } else {
-        println!("Usage: <path> [arg1] [arg2] [arg3]...");
+        println!("XMLang Interpreter (https://esolangs.org/wiki/XMLang)
+Usage: <path> [arg1] [arg2] [arg3]...");
         return Ok(());
     }
     let args: Vec<String> = cli_args.collect();
