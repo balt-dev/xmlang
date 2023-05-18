@@ -3,4 +3,4 @@
  
 This code is likely terrible, as this is my first big project with Rust (the ones in the book didn't interest me)
 
-If anything panics at runtime or doesn't work as intended, please open an issue!
+If anything panics at runtime or doesn't work as intended in any other way, please open an issue!
